@@ -1,18 +1,37 @@
 import { warn } from "@ember/debug";
 import { equal } from "@ember/object/computed";
-import EmberObject from "@ember/object";
+import EmberObject, { computed } from "@ember/object";
 import { Promise } from "rsvp";
+import { getOwner } from "discourse-common/lib/get-owner";
 
 const RestModel = EmberObject.extend({
   isNew: equal("__state", "new"),
   isCreated: equal("__state", "created"),
   isSaving: false,
+  _siteSettings: null,
 
   beforeCreate() {},
   afterCreate() {},
 
   beforeUpdate() {},
   afterUpdate() {},
+
+  init() {
+    this._super(...arguments);
+    this._siteSettings = getOwner(this).lookup("site-settings:main");
+  },
+
+  // TODO: Remove this once one instantiate all models from the store.
+  siteSettings: computed({
+    get() {
+      return this._siteSettings;
+    },
+
+    // prevents model created from json to override this property
+    set() {
+      return this._siteSettings;
+    }
+  }),
 
   update(props) {
     if (this.isSaving) {
